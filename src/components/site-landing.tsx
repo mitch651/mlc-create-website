@@ -7,7 +7,6 @@ import {
   Check,
   Code2,
   Layers,
-  Mail,
   MapPin,
   Shield,
   Sparkles,
@@ -32,10 +31,10 @@ function AvailabilityBadge({ className }: { className?: string }) {
         className="relative flex h-3.5 w-3.5 items-center justify-center"
         aria-hidden
       >
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_12px_2px_rgba(239,68,68,0.85)]" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_12px_2px_rgba(34,211,238,0.85)]" />
       </span>
-      <p className="animate-availability-beep text-xs font-semibold tracking-wide text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.45)] sm:text-sm">
+      <p className="animate-availability-beep text-xs font-semibold tracking-wide text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.45)] sm:text-sm">
         Available for new projects
       </p>
     </div>
@@ -363,7 +362,7 @@ export function SiteLanding() {
                   </ul>
                   <LiquidButton
                     href="#contact"
-                    className="mt-8 w-full rounded-full border border-zinc-600 text-white"
+                    className="mt-8 w-fit self-center rounded-full border border-zinc-600 text-white"
                     size="lg"
                   >
                     Get started with {pkg.name}
@@ -518,7 +517,6 @@ export function SiteLanding() {
                   className="rounded-full border border-zinc-600 text-white"
                   size="xl"
                 >
-                  <Mail className="size-4 shrink-0" aria-hidden />
                   Email {CONTACT_EMAIL}
                 </LiquidButton>
                 <p className="flex items-center gap-2 text-xs text-zinc-500">
