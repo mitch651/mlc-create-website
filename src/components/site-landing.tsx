@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import {
   CalendarClock,
   Check,
@@ -187,7 +188,113 @@ const TECH_STACK = [
   "Perf-first",
 ] as const
 
+const PACKAGE_OPTIONS = [
+  "Starter ($1,500)",
+  "Professional ($2,500)",
+  "Premium ($3,500)",
+  "Enterprise ($5,000)",
+] as const
+
+const FEATURE_OPTIONS = [
+  "Contact form",
+  "Photo gallery",
+  "Video content",
+  "Blog / news",
+  "E-commerce / online store",
+  "Booking / scheduling",
+  "Client portal",
+  "Social media feeds",
+  "Email marketing integration",
+  "AI chatbot",
+  "Customer reviews / testimonials",
+  "Maps / location page",
+  "FAQ section",
+  "Team / about page",
+  "Portfolio / work samples",
+  "Payment processing",
+  "Newsletter signup",
+  "Custom animations",
+] as const
+
+const CONTENT_SUPPLY_OPTIONS = [
+  "I have all content ready (text, photos, videos)",
+  "I need help creating content (additional cost may apply)",
+  "I have some content but need assistance with the rest",
+] as const
+
 export function SiteLanding() {
+  const [formData, setFormData] = useState({
+    businessName: "",
+    contactName: "",
+    titleRole: "",
+    phone: "",
+    email: "",
+    businessAddress: "",
+    currentWebsite: "",
+    industry: "",
+    selectedPackage: PACKAGE_OPTIONS[1],
+    desiredLaunchDate: "",
+    mainGoals: "",
+    branding: "",
+    contentSupply: CONTENT_SUPPLY_OPTIONS[0],
+    inspiration1: "",
+    inspiration2: "",
+    inspiration3: "",
+    additionalNotes: "",
+  })
+  const [features, setFeatures] = useState<string[]>([])
+  const [submitted, setSubmitted] = useState(false)
+
+  const onFieldChange =
+    (field: keyof typeof formData) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }))
+    }
+
+  const toggleFeature = (feature: string) => {
+    setFeatures((prev) =>
+      prev.includes(feature)
+        ? prev.filter((item) => item !== feature)
+        : [...prev, feature],
+    )
+  }
+
+  const handleLeadSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const lines = [
+      `Business Name: ${formData.businessName}`,
+      `Contact Name: ${formData.contactName}`,
+      `Title / Role: ${formData.titleRole}`,
+      `Phone: ${formData.phone}`,
+      `Email: ${formData.email}`,
+      `Business Address: ${formData.businessAddress}`,
+      `Current Website: ${formData.currentWebsite}`,
+      `Industry / Type: ${formData.industry}`,
+      "",
+      `Selected Package: ${formData.selectedPackage}`,
+      `Desired Launch Date: ${formData.desiredLaunchDate}`,
+      `Main Goals: ${formData.mainGoals}`,
+      `Existing Branding: ${formData.branding}`,
+      "",
+      `Features Needed: ${features.length > 0 ? features.join(", ") : "Not specified"}`,
+      `Content Supply: ${formData.contentSupply}`,
+      "",
+      "Inspiration Sites:",
+      `1) ${formData.inspiration1}`,
+      `2) ${formData.inspiration2}`,
+      `3) ${formData.inspiration3}`,
+      "",
+      `Additional Notes: ${formData.additionalNotes}`,
+    ].join("\n")
+
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+      `New Website Inquiry - ${formData.businessName || "MLC Lead"}`,
+    )}&body=${encodeURIComponent(lines)}`
+
+    setSubmitted(true)
+  }
+
   return (
     <div className="relative min-h-dvh overflow-x-hidden bg-black pb-[calc(5.25rem+env(safe-area-inset-bottom))] text-zinc-100 md:pb-0">
       <WebGLShader />
@@ -500,30 +607,263 @@ export function SiteLanding() {
 
           <section
             id="contact"
-            className="mx-auto max-w-2xl scroll-mt-[5.5rem] px-4 py-20 text-center sm:scroll-mt-24 sm:px-6 sm:py-28 md:scroll-mt-28"
+            className="mx-auto max-w-5xl scroll-mt-[5.5rem] px-4 py-20 sm:scroll-mt-24 sm:px-6 sm:py-28 md:scroll-mt-28"
           >
-            <div className="rounded-xl border border-zinc-800 bg-black/50 p-8 backdrop-blur-sm sm:p-12">
-              <h2 className="text-2xl font-semibold text-white sm:text-3xl">
-                Tell us about your business
-              </h2>
-              <AvailabilityBadge className="mt-6" />
-              <p className="mt-4 text-sm text-zinc-500 sm:text-base">
-                Share your goals, timeline, and the package you have in mind. We will follow up with
-                next steps and a consultation — same details as the client onboarding packet.
-              </p>
-              <div className="mt-8 flex flex-col items-center gap-4">
-                <LiquidButton
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="rounded-full border border-zinc-600 text-white"
-                  size="xl"
-                >
-                  Email {CONTACT_EMAIL}
-                </LiquidButton>
-                <p className="flex items-center gap-2 text-xs text-zinc-500">
-                  <MapPin className="size-3.5 shrink-0" aria-hidden />
-                  Cerritos, CA · Custom websites, automation, digital solutions
+            <div className="rounded-xl border border-zinc-800 bg-black/50 p-6 backdrop-blur-sm sm:p-10">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+                  Client Information Form
+                </h2>
+                <AvailabilityBadge className="mt-5" />
+                <p className="mx-auto mt-4 max-w-2xl text-sm text-zinc-500 sm:text-base">
+                  Fill this out and we will open an email draft with everything prefilled for your
+                  consultation request.
                 </p>
               </div>
+
+              <form className="mt-8 space-y-8" onSubmit={handleLeadSubmit}>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase">
+                    Business Information
+                  </h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Business Name</span>
+                      <input
+                        required
+                        value={formData.businessName}
+                        onChange={onFieldChange("businessName")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="Your business name"
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Contact Name</span>
+                      <input
+                        required
+                        value={formData.contactName}
+                        onChange={onFieldChange("contactName")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="Full name"
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Title / Role</span>
+                      <input
+                        value={formData.titleRole}
+                        onChange={onFieldChange("titleRole")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="Owner, Marketing Lead, etc."
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Phone</span>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={onFieldChange("phone")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="(000) 000-0000"
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Email</span>
+                      <input
+                        required
+                        type="email"
+                        value={formData.email}
+                        onChange={onFieldChange("email")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="name@business.com"
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Current Website</span>
+                      <input
+                        type="url"
+                        value={formData.currentWebsite}
+                        onChange={onFieldChange("currentWebsite")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="https://"
+                      />
+                    </label>
+                  </div>
+                  <label className="space-y-1.5 text-sm text-zinc-400">
+                    <span>Business Address</span>
+                    <input
+                      value={formData.businessAddress}
+                      onChange={onFieldChange("businessAddress")}
+                      className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                      placeholder="Street, City, State"
+                    />
+                  </label>
+                  <label className="space-y-1.5 text-sm text-zinc-400">
+                    <span>Industry / Type of Business</span>
+                    <input
+                      value={formData.industry}
+                      onChange={onFieldChange("industry")}
+                      className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                      placeholder="Construction, Legal, Beauty, etc."
+                    />
+                  </label>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase">
+                    Project Details
+                  </h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Selected Package</span>
+                      <select
+                        value={formData.selectedPackage}
+                        onChange={onFieldChange("selectedPackage")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                      >
+                        {PACKAGE_OPTIONS.map((pkg) => (
+                          <option key={pkg} value={pkg}>
+                            {pkg}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Desired Launch Date</span>
+                      <input
+                        type="date"
+                        value={formData.desiredLaunchDate}
+                        onChange={onFieldChange("desiredLaunchDate")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                      />
+                    </label>
+                  </div>
+                  <label className="space-y-1.5 text-sm text-zinc-400">
+                    <span>Main goals for your website</span>
+                    <textarea
+                      required
+                      value={formData.mainGoals}
+                      onChange={onFieldChange("mainGoals")}
+                      rows={4}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                      placeholder="Lead generation, trust, bookings, sales, etc."
+                    />
+                  </label>
+                  <label className="space-y-1.5 text-sm text-zinc-400">
+                    <span>Existing branding (logo, colors, fonts)</span>
+                    <textarea
+                      value={formData.branding}
+                      onChange={onFieldChange("branding")}
+                      rows={3}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                      placeholder="Share what you already have."
+                    />
+                  </label>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase">
+                    Content & Features Needed
+                  </h3>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {FEATURE_OPTIONS.map((feature) => {
+                      const checked = features.includes(feature)
+                      return (
+                        <label
+                          key={feature}
+                          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm text-zinc-300"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleFeature(feature)}
+                            className="size-4 rounded border-zinc-600 bg-zinc-900 text-primary focus-visible:ring-2 focus-visible:ring-primary/60"
+                          />
+                          <span>{feature}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  <label className="space-y-1.5 text-sm text-zinc-400">
+                    <span>Who will provide the content?</span>
+                    <select
+                      value={formData.contentSupply}
+                      onChange={onFieldChange("contentSupply")}
+                      className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                    >
+                      {CONTENT_SUPPLY_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Inspiration site 1</span>
+                      <input
+                        type="url"
+                        value={formData.inspiration1}
+                        onChange={onFieldChange("inspiration1")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="https://"
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Inspiration site 2</span>
+                      <input
+                        type="url"
+                        value={formData.inspiration2}
+                        onChange={onFieldChange("inspiration2")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="https://"
+                      />
+                    </label>
+                    <label className="space-y-1.5 text-sm text-zinc-400">
+                      <span>Inspiration site 3</span>
+                      <input
+                        type="url"
+                        value={formData.inspiration3}
+                        onChange={onFieldChange("inspiration3")}
+                        className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                        placeholder="https://"
+                      />
+                    </label>
+                  </div>
+                  <label className="space-y-1.5 text-sm text-zinc-400">
+                    <span>Additional notes / special requirements</span>
+                    <textarea
+                      value={formData.additionalNotes}
+                      onChange={onFieldChange("additionalNotes")}
+                      rows={4}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
+                      placeholder="Anything unique we should plan for?"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex flex-col items-center gap-3 border-t border-zinc-800 pt-6">
+                  <LiquidButton
+                    type="submit"
+                    className="rounded-full border border-zinc-600 px-8 text-white"
+                    size="xl"
+                  >
+                    Send Consultation Request
+                  </LiquidButton>
+                  <p className="text-xs text-zinc-500">
+                    50% deposit starts the project • 6-month minimum on monthly services
+                  </p>
+                  {submitted && (
+                    <p className="text-xs font-medium text-cyan-300">
+                      Email draft opened with your completed form details.
+                    </p>
+                  )}
+                </div>
+              </form>
+
+              <p className="mt-7 flex items-center justify-center gap-2 text-xs text-zinc-500">
+                <MapPin className="size-3.5 shrink-0" aria-hidden />
+                Cerritos, CA · Custom websites, automation, digital solutions
+              </p>
             </div>
           </section>
         </main>
