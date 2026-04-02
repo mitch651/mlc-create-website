@@ -212,7 +212,7 @@ export function SiteLanding() {
             >
               <MlcLogo className="h-9 w-9 shrink-0 transition-opacity group-hover:opacity-90 sm:h-10 sm:w-10" />
               <div className="min-w-0 leading-tight">
-                <p className="text-[10px] font-semibold tracking-[0.35em] text-zinc-500 uppercase">
+                <p className="text-xs font-semibold tracking-[0.28em] text-zinc-500 uppercase">
                   Create
                 </p>
                 <p className="text-xs font-medium tracking-wide text-zinc-200 sm:text-sm">
@@ -259,7 +259,7 @@ export function SiteLanding() {
                     priority
                   />
                 </div>
-                <p className="mb-4 text-center text-[10px] font-semibold tracking-[0.4em] text-zinc-500 uppercase">
+                <p className="mb-4 text-center text-xs font-semibold tracking-[0.3em] text-zinc-500 uppercase">
                   MLC Create · Cerritos, CA
                 </p>
                 <h1 className="mb-4 text-balance text-center text-[1.65rem] font-extrabold leading-[1.12] tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-[clamp(2.25rem,7vw,4.5rem)]">
