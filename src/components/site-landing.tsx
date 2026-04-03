@@ -227,6 +227,66 @@ const CONTENT_SUPPLY_OPTIONS = [
   "I have some content but need assistance with the rest",
 ] as const
 
+type LeadFormState = {
+  businessName: string
+  contactName: string
+  titleRole: string
+  phone: string
+  email: string
+  businessAddress: string
+  currentWebsite: string
+  industry: string
+  selectedPackage: string
+  desiredLaunchDate: string
+  mainGoals: string
+  branding: string
+  contentSupply: string
+  inspiration1: string
+  inspiration2: string
+  inspiration3: string
+  additionalNotes: string
+}
+
+function buildLeadFormPlainBody(formData: LeadFormState, features: string[]): string {
+  return [
+    `Business Name: ${formData.businessName}`,
+    `Contact Name: ${formData.contactName}`,
+    `Title / Role: ${formData.titleRole}`,
+    `Phone: ${formData.phone}`,
+    `Email: ${formData.email}`,
+    `Business Address: ${formData.businessAddress}`,
+    `Current Website: ${formData.currentWebsite}`,
+    `Industry / Type: ${formData.industry}`,
+    "",
+    `Selected Package: ${formData.selectedPackage}`,
+    `Desired Launch Date: ${formData.desiredLaunchDate}`,
+    `Main Goals: ${formData.mainGoals}`,
+    `Existing Branding: ${formData.branding}`,
+    "",
+    `Features Needed: ${features.length > 0 ? features.join(", ") : "Not specified"}`,
+    `Content Supply: ${formData.contentSupply}`,
+    "",
+    "Inspiration Sites:",
+    `1) ${formData.inspiration1}`,
+    `2) ${formData.inspiration2}`,
+    `3) ${formData.inspiration3}`,
+    "",
+    `Additional Notes: ${formData.additionalNotes}`,
+  ].join("\n")
+}
+
+function buildConsultationMailtoHref(formData: LeadFormState, features: string[]): string {
+  const body = buildLeadFormPlainBody(formData, features)
+  const subject = `New Website Inquiry - ${formData.businessName || "MLC Lead"}`
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+}
+
+function isLocalDevHost(): boolean {
+  if (typeof window === "undefined") return false
+  const h = window.location.hostname
+  return h === "localhost" || h === "127.0.0.1" || h === "[::1]"
+}
+
 export function SiteLanding() {
   const [formData, setFormData] = useState({
     businessName: "",
@@ -309,7 +369,9 @@ export function SiteLanding() {
       setSubmitted(true)
     } catch {
       setSubmitError(
-        `We could not send your request from this browser. You can email us at ${CONTACT_EMAIL} instead.`,
+        isLocalDevHost()
+          ? "Local preview cannot post to Netlify. Use the link below to open your email with this form filled in, or submit again on the deployed site."
+          : `We could not send your request from this browser. Use the link below to open your email with this form filled in, or write us at ${CONTACT_EMAIL}.`,
       )
     } finally {
       setIsSubmitting(false)
@@ -896,10 +958,10 @@ export function SiteLanding() {
                     50% deposit starts the project • 6-month minimum on monthly services
                   </p>
                   {submitError && (
-                    <p className="max-w-md text-center text-xs text-red-400" role="alert">
+                    <p className="max-w-md text-center text-xs leading-relaxed text-red-400" role="alert">
                       {submitError}{" "}
                       <a
-                        href={`mailto:${CONTACT_EMAIL}`}
+                        href={buildConsultationMailtoHref(formData, features)}
                         className="font-medium text-cyan-300 underline underline-offset-2 hover:text-cyan-200"
                       >
                         Email us directly
