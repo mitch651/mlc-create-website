@@ -22,6 +22,7 @@ import { WebGLShader } from "@/components/ui/web-gl-shader"
 import {
   NETLIFY_CLIENT_INTAKE_FORM_NAME,
   NETLIFY_CLIENT_INTAKE_HONEYPOT,
+  NETLIFY_FORMS_POST_PATH,
 } from "@/lib/netlify-client-intake"
 import { cn } from "@/lib/utils"
 
@@ -297,7 +298,7 @@ export function SiteLanding() {
     params.append("additionalNotes", formData.additionalNotes)
 
     try {
-      const res = await fetch("/", {
+      const res = await fetch(NETLIFY_FORMS_POST_PATH, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: params.toString(),
