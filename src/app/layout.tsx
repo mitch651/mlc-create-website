@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 
+import { NetlifyClientIntakeRegistration } from "@/components/netlify-client-intake-registration"
+
 import "./globals.css"
 
 const inter = Inter({
@@ -41,6 +43,7 @@ export default function RootLayout({
       className={`dark ${inter.variable} ${jetbrainsMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-dvh touch-manipulation bg-background font-sans text-foreground antialiased">
+        <NetlifyClientIntakeRegistration />
         {children}
       </body>
     </html>

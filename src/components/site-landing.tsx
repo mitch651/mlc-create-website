@@ -19,6 +19,10 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { buttonVariants } from "@/components/ui/button"
 import { LiquidButton } from "@/components/ui/liquid-glass-button"
 import { WebGLShader } from "@/components/ui/web-gl-shader"
+import {
+  NETLIFY_CLIENT_INTAKE_FORM_NAME,
+  NETLIFY_CLIENT_INTAKE_HONEYPOT,
+} from "@/lib/netlify-client-intake"
 import { cn } from "@/lib/utils"
 
 function AvailabilityBadge({ className }: { className?: string }) {
@@ -244,6 +248,8 @@ export function SiteLanding() {
   })
   const [features, setFeatures] = useState<string[]>([])
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const onFieldChange =
     (field: keyof typeof formData) =>
@@ -259,40 +265,54 @@ export function SiteLanding() {
     )
   }
 
-  const handleLeadSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLeadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setSubmitError(null)
+    setSubmitted(false)
+    setIsSubmitting(true)
 
-    const lines = [
-      `Business Name: ${formData.businessName}`,
-      `Contact Name: ${formData.contactName}`,
-      `Title / Role: ${formData.titleRole}`,
-      `Phone: ${formData.phone}`,
-      `Email: ${formData.email}`,
-      `Business Address: ${formData.businessAddress}`,
-      `Current Website: ${formData.currentWebsite}`,
-      `Industry / Type: ${formData.industry}`,
-      "",
-      `Selected Package: ${formData.selectedPackage}`,
-      `Desired Launch Date: ${formData.desiredLaunchDate}`,
-      `Main Goals: ${formData.mainGoals}`,
-      `Existing Branding: ${formData.branding}`,
-      "",
-      `Features Needed: ${features.length > 0 ? features.join(", ") : "Not specified"}`,
-      `Content Supply: ${formData.contentSupply}`,
-      "",
-      "Inspiration Sites:",
-      `1) ${formData.inspiration1}`,
-      `2) ${formData.inspiration2}`,
-      `3) ${formData.inspiration3}`,
-      "",
-      `Additional Notes: ${formData.additionalNotes}`,
-    ].join("\n")
+    const params = new URLSearchParams()
+    params.append("form-name", NETLIFY_CLIENT_INTAKE_FORM_NAME)
+    params.append(NETLIFY_CLIENT_INTAKE_HONEYPOT, "")
+    params.append("businessName", formData.businessName)
+    params.append("contactName", formData.contactName)
+    params.append("titleRole", formData.titleRole)
+    params.append("phone", formData.phone)
+    params.append("email", formData.email)
+    params.append("businessAddress", formData.businessAddress)
+    params.append("currentWebsite", formData.currentWebsite)
+    params.append("industry", formData.industry)
+    params.append("selectedPackage", formData.selectedPackage)
+    params.append("desiredLaunchDate", formData.desiredLaunchDate)
+    params.append("mainGoals", formData.mainGoals)
+    params.append("branding", formData.branding)
+    params.append(
+      "features",
+      features.length > 0 ? features.join(", ") : "Not specified",
+    )
+    params.append("contentSupply", formData.contentSupply)
+    params.append("inspiration1", formData.inspiration1)
+    params.append("inspiration2", formData.inspiration2)
+    params.append("inspiration3", formData.inspiration3)
+    params.append("additionalNotes", formData.additionalNotes)
 
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-      `New Website Inquiry - ${formData.businessName || "MLC Lead"}`,
-    )}&body=${encodeURIComponent(lines)}`
-
-    setSubmitted(true)
+    try {
+      const res = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString(),
+      })
+      if (!res.ok) {
+        throw new Error("Bad response")
+      }
+      setSubmitted(true)
+    } catch {
+      setSubmitError(
+        `We could not send your request from this browser. You can email us at ${CONTACT_EMAIL} instead.`,
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -616,12 +636,16 @@ export function SiteLanding() {
                 </h2>
                 <AvailabilityBadge className="mt-5" />
                 <p className="mx-auto mt-4 max-w-2xl text-sm text-zinc-500 sm:text-base">
-                  Fill this out and we will open an email draft with everything prefilled for your
-                  consultation request.
+                  Submit your details and we will receive your consultation request through this
+                  site. We typically reply within one business day.
                 </p>
               </div>
 
-              <form className="mt-8 space-y-8" onSubmit={handleLeadSubmit}>
+              <form
+                className="mt-8 space-y-8"
+                onSubmit={handleLeadSubmit}
+                aria-busy={isSubmitting}
+              >
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase">
                     Business Information
@@ -631,6 +655,7 @@ export function SiteLanding() {
                       <span>Business Name</span>
                       <input
                         required
+                        name="businessName"
                         value={formData.businessName}
                         onChange={onFieldChange("businessName")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -641,6 +666,7 @@ export function SiteLanding() {
                       <span>Contact Name</span>
                       <input
                         required
+                        name="contactName"
                         value={formData.contactName}
                         onChange={onFieldChange("contactName")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -650,6 +676,7 @@ export function SiteLanding() {
                     <label className="space-y-1.5 text-sm text-zinc-400">
                       <span>Title / Role</span>
                       <input
+                        name="titleRole"
                         value={formData.titleRole}
                         onChange={onFieldChange("titleRole")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -660,6 +687,7 @@ export function SiteLanding() {
                       <span>Phone</span>
                       <input
                         type="tel"
+                        name="phone"
                         value={formData.phone}
                         onChange={onFieldChange("phone")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -671,6 +699,7 @@ export function SiteLanding() {
                       <input
                         required
                         type="email"
+                        name="email"
                         value={formData.email}
                         onChange={onFieldChange("email")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -681,6 +710,7 @@ export function SiteLanding() {
                       <span>Current Website</span>
                       <input
                         type="url"
+                        name="currentWebsite"
                         value={formData.currentWebsite}
                         onChange={onFieldChange("currentWebsite")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -691,6 +721,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Business Address</span>
                     <input
+                      name="businessAddress"
                       value={formData.businessAddress}
                       onChange={onFieldChange("businessAddress")}
                       className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -700,6 +731,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Industry / Type of Business</span>
                     <input
+                      name="industry"
                       value={formData.industry}
                       onChange={onFieldChange("industry")}
                       className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -716,6 +748,7 @@ export function SiteLanding() {
                     <label className="space-y-1.5 text-sm text-zinc-400">
                       <span>Selected Package</span>
                       <select
+                        name="selectedPackage"
                         value={formData.selectedPackage}
                         onChange={onFieldChange("selectedPackage")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -731,6 +764,7 @@ export function SiteLanding() {
                       <span>Desired Launch Date</span>
                       <input
                         type="date"
+                        name="desiredLaunchDate"
                         value={formData.desiredLaunchDate}
                         onChange={onFieldChange("desiredLaunchDate")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -741,6 +775,7 @@ export function SiteLanding() {
                     <span>Main goals for your website</span>
                     <textarea
                       required
+                      name="mainGoals"
                       value={formData.mainGoals}
                       onChange={onFieldChange("mainGoals")}
                       rows={4}
@@ -751,6 +786,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Existing branding (logo, colors, fonts)</span>
                     <textarea
+                      name="branding"
                       value={formData.branding}
                       onChange={onFieldChange("branding")}
                       rows={3}
@@ -786,6 +822,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Who will provide the content?</span>
                     <select
+                      name="contentSupply"
                       value={formData.contentSupply}
                       onChange={onFieldChange("contentSupply")}
                       className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -802,6 +839,7 @@ export function SiteLanding() {
                       <span>Inspiration site 1</span>
                       <input
                         type="url"
+                        name="inspiration1"
                         value={formData.inspiration1}
                         onChange={onFieldChange("inspiration1")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -812,6 +850,7 @@ export function SiteLanding() {
                       <span>Inspiration site 2</span>
                       <input
                         type="url"
+                        name="inspiration2"
                         value={formData.inspiration2}
                         onChange={onFieldChange("inspiration2")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -822,6 +861,7 @@ export function SiteLanding() {
                       <span>Inspiration site 3</span>
                       <input
                         type="url"
+                        name="inspiration3"
                         value={formData.inspiration3}
                         onChange={onFieldChange("inspiration3")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -832,6 +872,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Additional notes / special requirements</span>
                     <textarea
+                      name="additionalNotes"
                       value={formData.additionalNotes}
                       onChange={onFieldChange("additionalNotes")}
                       rows={4}
@@ -844,17 +885,30 @@ export function SiteLanding() {
                 <div className="flex flex-col items-center gap-3 border-t border-zinc-800 pt-6">
                   <LiquidButton
                     type="submit"
+                    disabled={isSubmitting}
                     className="rounded-full border border-zinc-600 px-8 text-white"
                     size="xl"
                   >
-                    Send Consultation Request
+                    {isSubmitting ? "Sending…" : "Send Consultation Request"}
                   </LiquidButton>
                   <p className="text-xs text-zinc-500">
                     50% deposit starts the project • 6-month minimum on monthly services
                   </p>
+                  {submitError && (
+                    <p className="max-w-md text-center text-xs text-red-400" role="alert">
+                      {submitError}{" "}
+                      <a
+                        href={`mailto:${CONTACT_EMAIL}`}
+                        className="font-medium text-cyan-300 underline underline-offset-2 hover:text-cyan-200"
+                      >
+                        Email us directly
+                      </a>
+                      .
+                    </p>
+                  )}
                   {submitted && (
-                    <p className="text-xs font-medium text-cyan-300">
-                      Email draft opened with your completed form details.
+                    <p className="text-xs font-medium text-cyan-300" role="status">
+                      Thanks — your request was sent. We will be in touch soon.
                     </p>
                   )}
                 </div>
