@@ -244,6 +244,7 @@ export function SiteLanding() {
   })
   const [features, setFeatures] = useState<string[]>([])
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState(false)
 
   const onFieldChange =
     (field: keyof typeof formData) =>
@@ -259,40 +260,33 @@ export function SiteLanding() {
     )
   }
 
-  const handleLeadSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLeadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setSubmitError(false)
 
-    const lines = [
-      `Business Name: ${formData.businessName}`,
-      `Contact Name: ${formData.contactName}`,
-      `Title / Role: ${formData.titleRole}`,
-      `Phone: ${formData.phone}`,
-      `Email: ${formData.email}`,
-      `Business Address: ${formData.businessAddress}`,
-      `Current Website: ${formData.currentWebsite}`,
-      `Industry / Type: ${formData.industry}`,
-      "",
-      `Selected Package: ${formData.selectedPackage}`,
-      `Desired Launch Date: ${formData.desiredLaunchDate}`,
-      `Main Goals: ${formData.mainGoals}`,
-      `Existing Branding: ${formData.branding}`,
-      "",
-      `Features Needed: ${features.length > 0 ? features.join(", ") : "Not specified"}`,
-      `Content Supply: ${formData.contentSupply}`,
-      "",
-      "Inspiration Sites:",
-      `1) ${formData.inspiration1}`,
-      `2) ${formData.inspiration2}`,
-      `3) ${formData.inspiration3}`,
-      "",
-      `Additional Notes: ${formData.additionalNotes}`,
-    ].join("\n")
+    const encode = (data: Record<string, string>) =>
+      Object.keys(data)
+        .map((k) => encodeURIComponent(k) + "=" + encodeURIComponent(data[k]))
+        .join("&")
 
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-      `New Website Inquiry - ${formData.businessName || "MLC Lead"}`,
-    )}&body=${encodeURIComponent(lines)}`
-
-    setSubmitted(true)
+    try {
+      const res = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: encode({
+          "form-name": "contact",
+          ...formData,
+          features: features.length > 0 ? features.join(", ") : "Not specified",
+        }),
+      })
+      if (res.ok) {
+        setSubmitted(true)
+      } else {
+        setSubmitError(true)
+      }
+    } catch {
+      setSubmitError(true)
+    }
   }
 
   return (
@@ -616,12 +610,17 @@ export function SiteLanding() {
                 </h2>
                 <AvailabilityBadge className="mt-5" />
                 <p className="mx-auto mt-4 max-w-2xl text-sm text-zinc-500 sm:text-base">
-                  Fill this out and we will open an email draft with everything prefilled for your
-                  consultation request.
+                  Fill this out and we will get back to you to discuss your project.
                 </p>
               </div>
 
-              <form className="mt-8 space-y-8" onSubmit={handleLeadSubmit}>
+              <form
+                className="mt-8 space-y-8"
+                onSubmit={handleLeadSubmit}
+                name="contact"
+                data-netlify="true"
+              >
+                <input type="hidden" name="form-name" value="contact" />
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase">
                     Business Information
@@ -631,6 +630,7 @@ export function SiteLanding() {
                       <span>Business Name</span>
                       <input
                         required
+                        name="businessName"
                         value={formData.businessName}
                         onChange={onFieldChange("businessName")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -641,6 +641,7 @@ export function SiteLanding() {
                       <span>Contact Name</span>
                       <input
                         required
+                        name="contactName"
                         value={formData.contactName}
                         onChange={onFieldChange("contactName")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -650,6 +651,7 @@ export function SiteLanding() {
                     <label className="space-y-1.5 text-sm text-zinc-400">
                       <span>Title / Role</span>
                       <input
+                        name="titleRole"
                         value={formData.titleRole}
                         onChange={onFieldChange("titleRole")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -660,6 +662,7 @@ export function SiteLanding() {
                       <span>Phone</span>
                       <input
                         type="tel"
+                        name="phone"
                         value={formData.phone}
                         onChange={onFieldChange("phone")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -671,6 +674,7 @@ export function SiteLanding() {
                       <input
                         required
                         type="email"
+                        name="email"
                         value={formData.email}
                         onChange={onFieldChange("email")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -681,6 +685,7 @@ export function SiteLanding() {
                       <span>Current Website</span>
                       <input
                         type="url"
+                        name="currentWebsite"
                         value={formData.currentWebsite}
                         onChange={onFieldChange("currentWebsite")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -691,6 +696,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Business Address</span>
                     <input
+                      name="businessAddress"
                       value={formData.businessAddress}
                       onChange={onFieldChange("businessAddress")}
                       className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -700,6 +706,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Industry / Type of Business</span>
                     <input
+                      name="industry"
                       value={formData.industry}
                       onChange={onFieldChange("industry")}
                       className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -716,6 +723,7 @@ export function SiteLanding() {
                     <label className="space-y-1.5 text-sm text-zinc-400">
                       <span>Selected Package</span>
                       <select
+                        name="selectedPackage"
                         value={formData.selectedPackage}
                         onChange={onFieldChange("selectedPackage")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -731,6 +739,7 @@ export function SiteLanding() {
                       <span>Desired Launch Date</span>
                       <input
                         type="date"
+                        name="desiredLaunchDate"
                         value={formData.desiredLaunchDate}
                         onChange={onFieldChange("desiredLaunchDate")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -741,6 +750,7 @@ export function SiteLanding() {
                     <span>Main goals for your website</span>
                     <textarea
                       required
+                      name="mainGoals"
                       value={formData.mainGoals}
                       onChange={onFieldChange("mainGoals")}
                       rows={4}
@@ -751,6 +761,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Existing branding (logo, colors, fonts)</span>
                     <textarea
+                      name="branding"
                       value={formData.branding}
                       onChange={onFieldChange("branding")}
                       rows={3}
@@ -764,6 +775,7 @@ export function SiteLanding() {
                   <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase">
                     Content & Features Needed
                   </h3>
+                  <input type="hidden" name="features" value={features.length > 0 ? features.join(", ") : "Not specified"} />
                   <div className="grid gap-2 sm:grid-cols-2">
                     {FEATURE_OPTIONS.map((feature) => {
                       const checked = features.includes(feature)
@@ -786,6 +798,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Who will provide the content?</span>
                     <select
+                      name="contentSupply"
                       value={formData.contentSupply}
                       onChange={onFieldChange("contentSupply")}
                       className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -802,6 +815,7 @@ export function SiteLanding() {
                       <span>Inspiration site 1</span>
                       <input
                         type="url"
+                        name="inspiration1"
                         value={formData.inspiration1}
                         onChange={onFieldChange("inspiration1")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -812,6 +826,7 @@ export function SiteLanding() {
                       <span>Inspiration site 2</span>
                       <input
                         type="url"
+                        name="inspiration2"
                         value={formData.inspiration2}
                         onChange={onFieldChange("inspiration2")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -822,6 +837,7 @@ export function SiteLanding() {
                       <span>Inspiration site 3</span>
                       <input
                         type="url"
+                        name="inspiration3"
                         value={formData.inspiration3}
                         onChange={onFieldChange("inspiration3")}
                         className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:outline-none"
@@ -832,6 +848,7 @@ export function SiteLanding() {
                   <label className="space-y-1.5 text-sm text-zinc-400">
                     <span>Additional notes / special requirements</span>
                     <textarea
+                      name="additionalNotes"
                       value={formData.additionalNotes}
                       onChange={onFieldChange("additionalNotes")}
                       rows={4}
@@ -854,7 +871,12 @@ export function SiteLanding() {
                   </p>
                   {submitted && (
                     <p className="text-xs font-medium text-cyan-300">
-                      Email draft opened with your completed form details.
+                      Your request was submitted. We will be in touch soon!
+                    </p>
+                  )}
+                  {submitError && (
+                    <p className="text-xs font-medium text-red-400">
+                      Something went wrong. Please try again or email us directly at {CONTACT_EMAIL}.
                     </p>
                   )}
                 </div>
